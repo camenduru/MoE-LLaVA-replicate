@@ -50,6 +50,6 @@ class Predictor(BasePredictor):
         self,
         input_image: Path = Input(description="Input Image"),
         input_text: str = Input(default="What is unusual about this image?"),
-    ) -> Path:
-        video_path = inference(input_image, input_text, self.tokenizer, self.model, self.processor)
-        return Path(video_path)
+    ) -> str:
+        out_string = inference(input_image, input_text, self.tokenizer, self.model, self.processor)
+        return out_string
