@@ -12,6 +12,7 @@ https://github.com/PKU-YuanGroup/MoE-LLaVA
 https://arxiv.org/abs/2401.15947
 
 ### 🖼 Output
+![Screenshot 2024-02-03 052507](https://github.com/camenduru/MoE-LLaVA-replicate/assets/54370274/c17b2b5b-2f50-4eb0-a825-b2af3d0f4764)
 
 ### 🏢 Sponsor
 https://replicate.com
