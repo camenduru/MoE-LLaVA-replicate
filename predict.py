@@ -11,23 +11,23 @@ from moellava.model.builder import load_pretrained_model
 from moellava.utils import disable_torch_init
 from moellava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
-def inference(image, inp):
-    image_processor = self.processor['image']
+def inference(image, inp, tokenizer=None, model=None, processor=None):
+    image_processor = processor['image']
     conv_mode = "phi"  # phi or qwen or stablelm
     conv = conv_templates[conv_mode].copy()
     roles = conv.roles
-    image_tensor = image_processor.preprocess(Image.open(image).convert('RGB'), return_tensors='pt')['pixel_values'].to(self.model.device, dtype=torch.float16)
+    image_tensor = image_processor.preprocess(Image.open(image).convert('RGB'), return_tensors='pt')['pixel_values'].to(model.device, dtype=torch.float16)
     print(f"{roles[1]}: {inp}")
     inp = DEFAULT_IMAGE_TOKEN + '\n' + inp
     conv.append_message(conv.roles[0], inp)
     conv.append_message(conv.roles[1], None)
     prompt = conv.get_prompt()
-    input_ids = tokenizer_image_token(prompt, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
+    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
     stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
     keywords = [stop_str]
-    stopping_criteria = KeywordsStoppingCriteria(keywords, self.tokenizer, input_ids)
+    stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
     with torch.inference_mode():
-        output_ids = self.model.generate(
+        output_ids = model.generate(
             input_ids,
             images=image_tensor,
             do_sample=True,
@@ -35,7 +35,7 @@ def inference(image, inp):
             max_new_tokens=1024,
             use_cache=True,
             stopping_criteria=[stopping_criteria])
-    outputs = self.tokenizer.decode(output_ids[0, input_ids.shape[1]:], skip_special_tokens=True).strip()
+    outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:], skip_special_tokens=True).strip()
     return outputs
 
 class Predictor(BasePredictor):
@@ -51,5 +51,5 @@ class Predictor(BasePredictor):
         input_image: Path = Input(description="Input Image"),
         input_text: str = Input(default="What is unusual about this image?"),
     ) -> Path:
-        video_path = inference(input_image, input_text)
+        video_path = inference(input_image, input_text, self.tokenizer, self.model, self.processor)
         return Path(video_path)
